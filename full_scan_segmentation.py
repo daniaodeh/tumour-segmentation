@@ -97,7 +97,7 @@ def check_cli(args: argparse.Namespace) -> List[Path]:
             if "Path" not in df.columns:
                 log.error("Expected 'Path' header in input .csv file:\n{df}")
                 exit()
-            scan_paths = df.get_column("Path").sort().to_list()
+            scan_paths = [Path(p) for p in df.get_column("Path").sort().to_list()]
         else:
             if not check_scan_file(input_path):
                 exit()
@@ -152,10 +152,13 @@ def run_command(
 
 
 def copy_scan(paths: Paths):
+    if paths.scan_cache.exists() and paths.scan_cache.stat().st_size == 0:
+        log.warning(f"Removing corrupt (0-byte) cache file: '{paths.scan_cache}'")
+        paths.scan_cache.unlink()
     if not paths.scan_cache.exists():
-        log.info(f"Copy to '{paths.scan_cache}'")
+        log.info(f"Symlinking to '{paths.scan_cache}'")
         paths.scan_cache.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy(paths.scan_path_orig, paths.scan_cache)
+        paths.scan_cache.symlink_to(paths.scan_path_orig)
 
 
 def check_cache(paths: Paths):
@@ -173,7 +176,7 @@ def tile_scan(paths: Paths, config: Config):
     log.info(f"Create tiles from '{scan_path}'")
     try:
         command = [
-            "python3",
+            sys.executable,
             str(paths.src_root.joinpath("preprocess/scan_tiling/tile_scans.py")),
             str(scan_path),
             "--output",
@@ -205,7 +208,7 @@ def downsample_scan(paths: Paths, config: Config):
     log.info(f"Downsample '{scan_path}'")
     try:
         command = [
-            "python3",
+            sys.executable,
             str(paths.src_root.joinpath("preprocess/prepare_scans/prepare_scans.py")),
             "--scans",
             str(scan_path),
@@ -335,7 +338,7 @@ def tile_inference(paths, config):
     try:
         # paths.tile_inference.mkdir(exist_ok=True)
         command = [
-            "python3",
+            sys.executable,
             str(paths.src_root.joinpath("segment_images.py")),
             "--config",
             str(paths.inference_config),
@@ -482,7 +485,7 @@ def segment_probability(paths: Paths, config: Config):
     downsampled_scan = paths.downsampled_scan.joinpath(paths.scan_name + ".png")
     try:
         command = [
-            "python3",
+            sys.executable,
             str(paths.src_root.joinpath("postprocess/segment_probability_maps.py")),
             str(paths.raw_probability),
             "--images",

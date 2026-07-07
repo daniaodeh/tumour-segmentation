@@ -659,16 +659,21 @@ def network_summary(
     depth = 4 if "nfnet" in encoder else 3
     if distributed:
         depth += 1
-    net_summary = torchinfo.summary(
-        network,
-        input_size=input_size,
-        depth=depth,
-        verbose=0,
-    )
-    if logger:
-        log.info(f"Network summary\n{net_summary}")
-        with log_dir.joinpath("network.txt").open("w") as ofile:
-            ofile.write(f"{net_summary}")
+    try:
+        # Always use CPU for network summary to avoid CUDA compatibility issues
+        net_summary = torchinfo.summary(
+            network.cpu(),
+            input_size=input_size,
+            depth=depth,
+            verbose=0,
+        )
+        if logger:
+            log.info(f"Network summary (CPU)\n{net_summary}")
+            with log_dir.joinpath("network.txt").open("w") as ofile:
+                ofile.write(f"{net_summary}")
+    except Exception as e:
+        if logger:
+            log.warning(f"Skipping network summary: {e}")
 
 
 def tensor_reduce_average(tensor: torch.Tensor, size: int) -> torch.Tensor:

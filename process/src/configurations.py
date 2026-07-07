@@ -516,9 +516,9 @@ def additional_setup(conf: Configurations, train_mode: bool) -> Configurations:
 
     # Hide other gpus than the one you want to use. For separate inference jobs on
     # multiple-gpu machines.
-    if conf.gpu is not None:
+    if conf.gpu is not None and conf.gpu >= 0:
         conf.device = f"cuda:{conf.gpu}"
-        torch.cuda.set_device(conf.gpu)
+        # torch.cuda.set_device(conf.gpu)  # Commented out due to AttributeError in PyTorch 2.9.1
         os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
         os.environ["CUDA_VISIBLE_DEVICES"] = str(conf.gpu)
     else:
@@ -557,8 +557,10 @@ def additional_setup(conf: Configurations, train_mode: bool) -> Configurations:
 def create_output_directory(conf: Configurations) -> Configurations:
     if conf.restore_path is not None:
         # filename is assumed to be on the form state-checkpoint_step-{step:06}.pth
-        conf.restore_step = int(conf.restore_path.stem.split("-")[-1])
-
+        try:
+            conf.restore_step = int(conf.restore_path.stem.split("-")[-1])
+        except ValueError:
+            conf.restore_step = 0
     if conf.train_mode:
         train_set_name = conf.input_data_path.stem
         if conf.restore_path is None:

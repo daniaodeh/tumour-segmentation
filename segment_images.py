@@ -479,6 +479,7 @@ def segment_images(conf: configurations.Configurations):
         net = nn.DataParallel(net)
 
     state = torch.load(conf.restore_path, map_location="cpu")
+    print("Restoring state from epoch", state["epoch"])
     state_key = "network_state"
     if conf.ema:
         state_key += "_ema"

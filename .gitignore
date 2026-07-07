@@ -162,3 +162,13 @@ cython_debug/
 assets/tests/input/models
 assets/tests/output
 build_docker_container.sh
+
+# -----------------------------
+# Lung study experiment outputs
+# (large, generated - lives outside this repo after the workspace reorg)
+# -----------------------------
+/output/
+/overlays/
+/geojson/
+/tumour_coords/
+.vscode/
