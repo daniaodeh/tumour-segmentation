@@ -1,0 +1,30 @@
+name: tumour-segmentation
+channels:
+  - pytorch
+  - conda-forge
+  - nvidia
+  - defaults
+dependencies:
+  # Python and PyTorch with CUDA support (2.5+ for RTX 5090 sm_120 support)
+  - python=3.10
+  - pytorch::pytorch>=2.5
+  - pytorch::torchvision
+  - pytorch::torchaudio
+  - pytorch::pytorch-cuda=12.1
+  - numpy
+  - pandas
+  - scikit-learn
+  - matplotlib
+  - pillow
+  - scipy
+  - opencv
+  - toml
+  - pip
+  - jupyter
+  - ipython
+  - pip:
+    - albumentations==1.1.0
+    - timm==0.4.12
+    - segmentation-models-pytorch==0.2.1
+    - torchinfo==1.6.3
+    - openslide-python==1.1.2
