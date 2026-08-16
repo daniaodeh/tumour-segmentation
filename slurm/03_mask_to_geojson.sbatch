@@ -6,7 +6,6 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=32G
 #SBATCH --time=02:00:00
-#SBATCH --partition=dogfish
 
 # Stage 3/10: convert tumor masks (from stage 2) to GeoJSON contours - the
 # actual tumor regions used later to filter TRIDENT patches (stage 6). CPU
