@@ -5,30 +5,43 @@ channels:
   - nvidia
   - defaults
 dependencies:
-  # Python and PyTorch with CUDA support (2.7.0+cu128 - needed for RTX 5090
-  # sm_120 support locally; also the exact version this pipeline has actually
-  # been run and debugged against, including extensive OpenSlide-specific
-  # read-failure diagnosis - keep pinned to this rather than the originally
-  # intended 2.5/cu121, even on hardware that wouldn't strictly require cu128)
+  # Every version below is pinned exactly from the actual local install this
+  # pipeline has been run and debugged against (`pip list --format=freeze`),
+  # not guessed from what the code appears to import - two earlier passes at
+  # curating a "direct dependencies only" list each missed real packages
+  # (efficientnet-pytorch/pretrainedmodels as segmentation-models-pytorch
+  # transitive deps; then polars/h5py/scikit-image/tqdm entirely). Exact-pin
+  # everything instead of re-deriving it a third time.
+  #
+  # cu128 (not the originally-intended cu121) - needed for RTX 5090 sm_120
+  # support locally; also what this pipeline has actually been validated
+  # against, including extensive OpenSlide-specific read-failure diagnosis.
+  #
+  # jupyter/ipython dropped - listed in an earlier version of this file but
+  # not actually present in the real local install, so not required to run
+  # anything in this repo.
   - python=3.10
-  - pandas
-  - scikit-learn
-  - matplotlib
-  - scipy
-  - toml
   - pip
-  - jupyter
-  - ipython
   - pip:
     # --extra-index-url (not --index-url) so PyPI is still used for every
     # other package below - only torch/torchvision/torchaudio actually
     # resolve from this index.
     - --extra-index-url https://download.pytorch.org/whl/cu128
     - torch==2.7.0
-    - torchvision
+    - torchvision==0.22.0
     - torchaudio
     - numpy==1.26.4
+    - pandas==2.3.3
+    - scikit-learn==1.7.2
+    - scikit-image==0.25.2
+    - matplotlib==3.5.1
+    - scipy==1.15.3
     - opencv-python-headless==4.5.5.64
+    - pillow==12.2.0
+    - toml==0.10.2
+    - tqdm==4.68.3
+    - polars==0.20.4
+    - h5py==3.16.0
     - albumentations==1.1.0
     - timm==0.4.12
     - segmentation-models-pytorch==0.2.1
