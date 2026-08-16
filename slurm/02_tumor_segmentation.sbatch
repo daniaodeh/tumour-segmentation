@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=02_tumor_segmentation
-#SBATCH --output=/sci/labs/nirpillar/shared/dania/projects/lung/code/segmentation/slurm/logs/%x_%j.out
-#SBATCH --error=/sci/labs/nirpillar/shared/dania/projects/lung/code/segmentation/slurm/logs/%x_%j.err
+#SBATCH --output=/sci/labs/nirpillar/dania.odeh/projects/lung/code/segmentation/slurm/logs/%x_%j.out
+#SBATCH --error=/sci/labs/nirpillar/dania.odeh/projects/lung/code/segmentation/slurm/logs/%x_%j.err
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=200G
@@ -21,7 +21,7 @@
 #     --prefix /sci/labs/nirpillar/dania.odeh/.conda/envs/tumour-segmentation
 set -euo pipefail
 
-source /sci/labs/nirpillar/shared/dania/projects/lung/env.sh
+source /sci/labs/nirpillar/dania.odeh/projects/lung/env.sh
 export CONDA_EXE=/sci/labs/nirpillar/shared/dania/miniconda/bin/conda
 source /sci/labs/nirpillar/shared/dania/miniconda/etc/profile.d/conda.sh
 conda activate /sci/labs/nirpillar/dania.odeh/.conda/envs/tumour-segmentation
