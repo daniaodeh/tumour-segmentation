@@ -7,7 +7,7 @@
 #SBATCH --mem=200G
 #SBATCH --gres=gpu:a100:1
 #SBATCH --time=24:00:00
-#SBATCH --partition=dogfish
+#SBATCH --partition=goldfish
 
 # Stage 2/10: our own tumor-segmentation model, full_scan_segmentation.py.
 # Single-GPU only - the script has no multi-GPU support, so requesting more
