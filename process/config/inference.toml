@@ -2,7 +2,7 @@ encoder = "timm-eca-nfnet-l3"
 decoder = "deeplabv3plus_gn"
 
 num_gpus = 1
-num_workers = 8
+num_workers = 4
 classes = [0, 127, 255]
 
 batch_size = 1
