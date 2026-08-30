@@ -172,3 +172,8 @@ build_docker_container.sh
 /geojson/
 /tumour_coords/
 .vscode/
+
+# SLURM job logs - generated per run, not source (slurm/logs/.gitkeep keeps
+# the directory itself present after clone/pull)
+slurm/logs/*.out
+slurm/logs/*.err
