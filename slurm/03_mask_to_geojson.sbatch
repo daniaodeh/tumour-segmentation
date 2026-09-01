@@ -11,6 +11,17 @@
 # actual tumor regions used later to filter TRIDENT patches (stage 6). CPU
 # only. Skips slides whose GeoJSON already exists and slides not yet
 # segmented (logs and continues).
+#
+# --source smooth: use result_probability_smooth.png rather than the raw
+# result_segmentation.png - some slides' raw mask came back with zero
+# tumor pixels even where the smooth probability map shows real signal.
+#
+# --overwrite: ONE-TIME ONLY, to regenerate all already-processed slides'
+# geojson under the new smooth source instead of the stale raw-mask one
+# (process_slide() otherwise skips any slide whose geojson already exists,
+# regardless of --source). REMOVE this flag once this run completes, or
+# every future stage-3 run reprocesses all slides from scratch instead of
+# only newly-finished stage-2 ones.
 set -euo pipefail
 
 source /sci/labs/nirpillar/dania.odeh/projects/lung/env.sh
@@ -22,4 +33,6 @@ cd "$RESEARCH_ROOT/projects/lung/code/segmentation"
 
 python mask_to_geojson.py \
   --output_dir "$RESEARCH_ROOT/projects/lung/experiments/segmentation/output/" \
-  --geojson_dir "$RESEARCH_ROOT/projects/lung/experiments/segmentation/geojson/"
+  --geojson_dir "$RESEARCH_ROOT/projects/lung/experiments/segmentation/geojson/" \
+  --source smooth \
+  --overwrite
