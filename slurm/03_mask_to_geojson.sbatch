@@ -16,12 +16,17 @@
 # result_segmentation.png - some slides' raw mask came back with zero
 # tumor pixels even where the smooth probability map shows real signal.
 #
-# --overwrite: ONE-TIME ONLY, to regenerate all already-processed slides'
-# geojson under the new smooth source instead of the stale raw-mask one
-# (process_slide() otherwise skips any slide whose geojson already exists,
-# regardless of --source). REMOVE this flag once this run completes, or
-# every future stage-3 run reprocesses all slides from scratch instead of
-# only newly-finished stage-2 ones.
+# --threshold 31: 12% of 255, the clinician's cut as of 2026-11-10, replacing
+# the script's 127 default (50%). It MUST match stage 6's --threshold. Stage 6
+# patches from the raster directly and does not read these GeoJSONs, so a
+# mismatch does not fail - it silently leaves the overlays and QuPath
+# describing a mask that was never patched.
+#
+# --overwrite: ONE-TIME ONLY after a source or threshold change, to regenerate
+# already-processed slides (process_slide() otherwise skips any slide whose
+# geojson exists, regardless of --source or --threshold). REMOVE this flag
+# once the run completes, or every future stage-3 run reprocesses all slides
+# instead of only newly-finished stage-2 ones.
 set -euo pipefail
 
 source /sci/labs/nirpillar/dania.odeh/projects/lung/env.sh
@@ -35,4 +40,5 @@ python mask_to_geojson.py \
   --output_dir "$RESEARCH_ROOT/projects/lung/experiments/segmentation/output/" \
   --geojson_dir "$RESEARCH_ROOT/projects/lung/experiments/segmentation/geojson/" \
   --source smooth \
+  --threshold 31 \
   --overwrite
