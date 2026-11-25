@@ -8,10 +8,20 @@ so the raster is the same information without the contour's losses: no
 half-pixel shrink, no RETR_CCOMP holes re-emitted as positive polygons (264
 of 333 slides had at least one), and no invalid geometries to repair.
 
-Containment rule: a patch is kept if its box contains any mask pixel above
-the threshold ("box intersects"). The box is `patch_size_level0` (1024 px),
-because coords are in level-0 pixels - `patch_size` (512) is the 20x pixel
-count and is the wrong unit in a level-0 coordinate space.
+Containment rule: a patch is kept if the mask value under the CENTRE of its
+box exceeds the threshold. The box is `patch_size_level0` (1024 px), because
+coords are in level-0 pixels - `patch_size` (512) is the 20x pixel count and
+is the wrong unit in a level-0 coordinate space.
+
+Centre replaced "box intersects any mask pixel" on 2026-11-25. Intersects
+kept a complete ring of patches around every tumour focus whose only tumour
+content was one clipped corner; across 331 slides it held 728,871 patches
+against centre's 649,539 (-10.9%), and the difference was almost entirely
+that ring. Requiring the whole box inside the mask was considered and
+rejected: on fragmented slides it does not trim edges, it deletes thin foci
+outright, because a focus narrower than 1024 level-0 px cannot contain a box
+at all. On the worst such slide in the cohort the three rules gave 678, 363
+and 129 patches, and the 129 were almost all drawn from one solid focus.
 
 For each slide, writes an H5 holding:
   - coords        : (M, 2) the TUMOUR subset, in level-0 pixels. Named
@@ -48,20 +58,17 @@ import h5py
 import numpy as np
 
 MASK_NAME = "result_probability_smooth.png"
-PROVENANCE_DOC = "box-intersects at patch_size_level0 against smooth probability > threshold"
+PROVENANCE_DOC = "box-centre at patch_size_level0 against smooth probability > threshold"
 
 
-def box_maxima(mask: np.ndarray, coords: np.ndarray, box: int,
-               level0_w: int, level0_h: int) -> np.ndarray:
-    """Max mask value under each patch box, in mask-pixel space."""
+def centre_values(mask: np.ndarray, coords: np.ndarray, box: int,
+                  level0_w: int, level0_h: int) -> np.ndarray:
+    """Mask value under the centre of each patch box, in mask-pixel space."""
     H, W = mask.shape
     sx, sy = level0_w / W, level0_h / H
-    x0 = np.clip((coords[:, 0] / sx).astype(int), 0, W - 1)
-    x1 = np.clip(np.ceil((coords[:, 0] + box) / sx).astype(int), 1, W)
-    y0 = np.clip((coords[:, 1] / sy).astype(int), 0, H - 1)
-    y1 = np.clip(np.ceil((coords[:, 1] + box) / sy).astype(int), 1, H)
-    return np.fromiter((mask[a:b, c:d].max() for a, b, c, d in zip(y0, y1, x0, x1)),
-                       dtype=np.uint8, count=len(coords))
+    cx = np.clip(((coords[:, 0] + box / 2) / sx).astype(int), 0, W - 1)
+    cy = np.clip(((coords[:, 1] + box / 2) / sy).astype(int), 0, H - 1)
+    return mask[cy, cx]
 
 
 def sha1(path: Path) -> str:
@@ -91,8 +98,8 @@ def process_slide(h5_path: Path, mask_path: Path, out_path: Path,
         attrs = dict(f["coords"].attrs)
 
     box = int(attrs["patch_size_level0"])
-    mx = box_maxima(mask, coords, box, int(attrs["level0_width"]),
-                    int(attrs["level0_height"]))
+    mx = centre_values(mask, coords, box, int(attrs["level0_width"]),
+                       int(attrs["level0_height"]))
     in_tumour = mx > threshold
     tumour_coords = coords[in_tumour]
 
@@ -134,8 +141,8 @@ def main():
     p.add_argument("--output_dir", type=Path, required=True,
                    help="Where to write filtered H5 files")
     p.add_argument("--threshold", type=int, default=31,
-                   help="Keep a patch if any mask pixel under it exceeds this "
-                        "0-255 value (default 31 = 12%%)")
+                   help="Keep a patch if the mask pixel under its centre "
+                        "exceeds this 0-255 value (default 31 = 12%%)")
     p.add_argument("--qc_csv", type=Path, default=None,
                    help="Where to write the per-slide QC table "
                         "(default <output_dir>/../filter_qc.csv)")
